@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class NodeInstaller {
 
-    public static final String INSTALL_PATH = "/.buildenv/node";
+    public static final String INSTALL_PATH = "/node";
 
     public static final String DEFAULT_NODEJS_DOWNLOAD_ROOT = "https://nodejs.org/dist/";
 

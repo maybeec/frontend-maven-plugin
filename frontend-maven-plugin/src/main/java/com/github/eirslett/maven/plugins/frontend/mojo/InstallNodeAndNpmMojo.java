@@ -1,51 +1,46 @@
 package com.github.eirslett.maven.plugins.frontend.mojo;
 
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.settings.Server;
-import org.apache.maven.settings.crypto.SettingsDecrypter;
-
 import com.github.eirslett.maven.plugins.frontend.lib.FrontendPluginFactory;
 import com.github.eirslett.maven.plugins.frontend.lib.InstallationException;
 import com.github.eirslett.maven.plugins.frontend.lib.NPMInstaller;
 import com.github.eirslett.maven.plugins.frontend.lib.NodeInstaller;
 import com.github.eirslett.maven.plugins.frontend.lib.ProxyConfig;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
+import org.apache.maven.settings.Server;
 
-@Mojo(name = "install-node-and-npm", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
+@Mojo(name="install-node-and-npm", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public final class InstallNodeAndNpmMojo extends AbstractFrontendMojo {
 
     /**
      * Where to download Node.js binary from. Defaults to http://nodejs.org/dist/
      */
-    @Parameter(property = "nodeDownloadRoot", required = false,
-        defaultValue = NodeInstaller.DEFAULT_NODEJS_DOWNLOAD_ROOT)
+    @Parameter(property = "nodeDownloadRoot", required = false, defaultValue = NodeInstaller.DEFAULT_NODEJS_DOWNLOAD_ROOT)
     private String nodeDownloadRoot;
 
     /**
      * Where to download NPM binary from. Defaults to http://registry.npmjs.org/npm/-/
      */
-    @Parameter(property = "npmDownloadRoot", required = false,
-        defaultValue = NPMInstaller.DEFAULT_NPM_DOWNLOAD_ROOT)
+    @Parameter(property = "npmDownloadRoot", required = false, defaultValue = NPMInstaller.DEFAULT_NPM_DOWNLOAD_ROOT)
     private String npmDownloadRoot;
 
     /**
      * Where to download Node.js and NPM binaries from.
      *
-     * @deprecated use {@link #nodeDownloadRoot} and {@link #npmDownloadRoot} instead, this configuration will
-     *             be used only when no {@link #nodeDownloadRoot} or {@link #npmDownloadRoot} is specified.
+     * @deprecated use {@link #nodeDownloadRoot} and {@link #npmDownloadRoot} instead, this configuration will be used only when no {@link #nodeDownloadRoot} or {@link #npmDownloadRoot} is specified.
      */
     @Parameter(property = "downloadRoot", required = false, defaultValue = "")
     @Deprecated
     private String downloadRoot;
 
     /**
-     * The version of Node.js to install. IMPORTANT! Most Node.js version names start with 'v', for example
-     * 'v0.10.18'
+     * The version of Node.js to install. IMPORTANT! Most Node.js version names start with 'v', for example 'v0.10.18'
      */
-    @Parameter(property = "nodeVersion", required = true)
+    @Parameter(property="nodeVersion", required = true)
     private String nodeVersion;
 
     /**
@@ -79,38 +74,50 @@ public final class InstallNodeAndNpmMojo extends AbstractFrontendMojo {
 
     @Override
     public void execute(FrontendPluginFactory factory) throws InstallationException {
-        ProxyConfig proxyConfig = MojoUtils.getProxyConfig(this.session, this.decrypter);
+        ProxyConfig proxyConfig = MojoUtils.getProxyConfig(session, decrypter);
         String nodeDownloadRoot = getNodeDownloadRoot();
         String npmDownloadRoot = getNpmDownloadRoot();
-        Server server = MojoUtils.decryptServer(this.serverId, this.session, this.decrypter);
+        Server server = MojoUtils.decryptServer(serverId, session, decrypter);
         if (null != server) {
-            factory.getNodeInstaller(proxyConfig).setNodeVersion(this.nodeVersion)
-                .setNodeDownloadRoot(nodeDownloadRoot).setNpmVersion(this.npmVersion)
-                .setUserName(server.getUsername()).setPassword(server.getPassword()).install();
-            factory.getNPMInstaller(proxyConfig).setNodeVersion(this.nodeVersion)
-                .setNpmVersion(this.npmVersion).setNpmDownloadRoot(npmDownloadRoot)
-                .setUserName(server.getUsername()).setPassword(server.getPassword()).install();
+            factory.getNodeInstaller(proxyConfig)
+                .setNodeVersion(nodeVersion)
+                .setNodeDownloadRoot(nodeDownloadRoot)
+                .setNpmVersion(npmVersion)
+                .setUserName(server.getUsername())
+                .setPassword(server.getPassword())
+                .install();
+            factory.getNPMInstaller(proxyConfig)
+                .setNodeVersion(nodeVersion)
+                .setNpmVersion(npmVersion)
+                .setNpmDownloadRoot(npmDownloadRoot)
+                .setUserName(server.getUsername())
+                .setPassword(server.getPassword())
+                .install();
         } else {
-            factory.getNodeInstaller(proxyConfig).setNodeVersion(this.nodeVersion)
-                .setNodeDownloadRoot(nodeDownloadRoot).setNpmVersion(this.npmVersion).install();
-            factory.getNPMInstaller(proxyConfig).setNodeVersion(this.nodeVersion)
-                .setNpmVersion(this.npmVersion).setNpmDownloadRoot(npmDownloadRoot).install();
+            factory.getNodeInstaller(proxyConfig)
+                .setNodeVersion(nodeVersion)
+                .setNodeDownloadRoot(nodeDownloadRoot)
+                .setNpmVersion(npmVersion)
+                .install();
+            factory.getNPMInstaller(proxyConfig)
+                .setNodeVersion(this.nodeVersion)
+                .setNpmVersion(this.npmVersion)
+                .setNpmDownloadRoot(npmDownloadRoot)
+                .install();
         }
     }
 
     private String getNodeDownloadRoot() {
-        if (this.downloadRoot != null && !"".equals(this.downloadRoot)
-            && NodeInstaller.DEFAULT_NODEJS_DOWNLOAD_ROOT.equals(this.nodeDownloadRoot)) {
-            return this.downloadRoot;
+        if (downloadRoot != null && !"".equals(downloadRoot) && NodeInstaller.DEFAULT_NODEJS_DOWNLOAD_ROOT.equals(nodeDownloadRoot)) {
+            return downloadRoot;
         }
-        return this.nodeDownloadRoot;
+        return nodeDownloadRoot;
     }
 
     private String getNpmDownloadRoot() {
-        if (this.downloadRoot != null && !"".equals(this.downloadRoot)
-            && NPMInstaller.DEFAULT_NPM_DOWNLOAD_ROOT.equals(this.npmDownloadRoot)) {
-            return this.downloadRoot;
+        if (downloadRoot != null && !"".equals(downloadRoot) && NPMInstaller.DEFAULT_NPM_DOWNLOAD_ROOT.equals(npmDownloadRoot)) {
+            return downloadRoot;
         }
-        return this.npmDownloadRoot;
+        return npmDownloadRoot;
     }
 }
